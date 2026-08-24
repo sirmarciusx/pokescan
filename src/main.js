@@ -6,6 +6,7 @@ import { CardDetailModal } from './components/cardDetailModal.js';
 import { CollectionView } from './components/collectionView.js';
 import { SearchModal } from './components/searchModal.js';
 import { SettingsModal } from './components/settingsModal.js';
+import { InstallModal } from './components/installModal.js';
 import { pokemonApi } from './services/pokemonApi.js';
 import { geminiVision } from './services/geminiVision.js';
 import { ocrService } from './services/ocrService.js';
@@ -64,6 +65,15 @@ class App {
         this.collectionView.refresh();
       }
     });
+
+    this.installModal = new InstallModal();
+    const btnTriggerInstall = document.getElementById('btnTriggerInstallModal');
+    if (btnTriggerInstall) {
+      btnTriggerInstall.addEventListener('click', () => {
+        sound.playTap();
+        this.installModal.show();
+      });
+    }
 
     this.scanner = new CameraScanner({
       videoElement: document.getElementById('cameraVideo'),

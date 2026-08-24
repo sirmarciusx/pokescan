@@ -285,6 +285,19 @@
           </div>
 
           <div class="settings-group">
+            <h3>📲 Aplicativo & PWA</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <label>Instalar PokeScan no Dispositivo</label>
+                <small>Adicione o app à tela inicial para acesso instantâneo sem barras de navegação.</small>
+              </div>
+              <button id="btnTriggerInstallModal" class="btn-primary-sm" style="margin-top: 8px;">
+                <i data-lucide="download"></i> Abrir Instalador
+              </button>
+            </div>
+          </div>
+
+          <div class="settings-group">
             <h3>ℹ️ Sobre o Aplicativo</h3>
             <div class="about-card">
               <p><strong>PokeScan TCG v1.0.0</strong></p>
@@ -360,6 +373,105 @@
           <div class="search-placeholder">
             <i data-lucide="sparkles"></i>
             <p>Digite o nome do Pokémon ou número da carta para consultar valores instantaneamente.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: INSTALL WEBAPP PROMPT -->
+    <div id="installAppModal" class="modal-backdrop hidden">
+      <div class="modal-sheet install-modal-sheet">
+        <div class="modal-drag-handle"></div>
+        <button class="btn-modal-close" id="btnCloseInstallModal" aria-label="Fechar"><i data-lucide="x"></i></button>
+
+        <div id="installStandardView" class="install-view-content">
+          <div class="install-badge">
+            <i data-lucide="sparkles"></i>
+            <span>EXPERIÊNCIA COMPLETA DISPONÍVEL</span>
+          </div>
+
+          <div class="install-app-preview">
+            <div class="install-icon-glow-ring">
+              <img src="/icon-192.png" alt="PokeScan App Icon" class="install-app-icon" />
+            </div>
+            <div class="install-app-meta">
+              <h2 class="install-title">Instalar o PokeScan App</h2>
+              <span class="install-version">Aplicativo WebApp PWA • Sem download de loja</span>
+            </div>
+          </div>
+
+          <p class="install-desc">
+            Instale o app diretamente no seu celular para acesso ultra-rápido à câmera, scanner offline e visual imersivo em tela cheia.
+          </p>
+
+          <div class="install-features-list">
+            <div class="install-feature-item">
+              <div class="feature-icon-wrap"><i data-lucide="camera"></i></div>
+              <div class="feature-text">
+                <strong>Câmera Instantânea</strong>
+                <span>Abertura sem delay do leitor</span>
+              </div>
+            </div>
+            <div class="install-feature-item">
+              <div class="feature-icon-wrap"><i data-lucide="zap"></i></div>
+              <div class="feature-text">
+                <strong>Modo Offline</strong>
+                <span>Consulte sua coleção salva</span>
+              </div>
+            </div>
+            <div class="install-feature-item">
+              <div class="feature-icon-wrap"><i data-lucide="smartphone"></i></div>
+              <div class="feature-text">
+                <strong>Tela Cheia Nativa</strong>
+                <span>Sem barras do navegador</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="install-actions">
+            <button id="btnInstallPWA" class="btn-install-primary">
+              <i data-lucide="download"></i>
+              <span>Instalar WebApp</span>
+            </button>
+            <button id="btnContinueWeb" class="btn-install-secondary">
+              <span>Continuar no Navegador</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- iOS Safari Instructions View -->
+        <div id="installIosGuide" class="install-view-content hidden">
+          <div class="install-badge">
+            <i data-lucide="apple"></i>
+            <span>INSTALAÇÃO NO IPHONE / IPAD</span>
+          </div>
+
+          <h2 class="install-title" style="margin-top: 14px;">Como instalar no iOS:</h2>
+          <p class="install-desc">Siga os 2 passos rápidos no Safari:</p>
+
+          <div class="ios-steps-list">
+            <div class="ios-step-card">
+              <div class="ios-step-num">1</div>
+              <div class="ios-step-info">
+                <span>Toque no botão <strong>Compartilhar</strong> na barra do Safari:</span>
+                <div class="ios-step-icon-preview"><i data-lucide="share"></i> <span>Compartilhar</span></div>
+              </div>
+            </div>
+
+            <div class="ios-step-card">
+              <div class="ios-step-num">2</div>
+              <div class="ios-step-info">
+                <span>Role a lista para baixo e toque em:</span>
+                <div class="ios-step-icon-preview"><i data-lucide="plus-square"></i> <strong>Adicionar à Tela de Início</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="install-actions" style="margin-top: 20px;">
+            <button id="btnIosDone" class="btn-install-primary">
+              <i data-lucide="check"></i>
+              <span>Entendi, acessar site</span>
+            </button>
           </div>
         </div>
       </div>
