@@ -2,7 +2,7 @@
   "name": "PokeScan TCG - Leitor & Cotação de Cartas",
   "short_name": "PokeScan",
   "description": "Escaneie cartas Pokémon com a câmera do celular e veja informações, coleções e valores de mercado em tempo real.",
-  "start_url": "./index.html",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#080c14",
   "theme_color": "#00F0FF",

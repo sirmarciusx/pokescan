@@ -329,7 +329,9 @@ class App {
 
   registerServiceWorker() {
     if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
-      navigator.serviceWorker.register('./service-worker.js').catch(() => {});
+      navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+        console.warn('[PWA] ServiceWorker não registrado:', err);
+      });
     }
   }
 }

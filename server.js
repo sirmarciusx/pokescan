@@ -49,13 +49,21 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  const filePath = path.resolve(__dirname, '.' + safePath);
+  let filePath = path.resolve(__dirname, '.' + safePath);
 
   // Strict check: Ensure the resolved file path is inside __dirname
   if (!filePath.startsWith(__dirname)) {
     res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
     res.end('403 Forbidden: Acesso Negado');
     return;
+  }
+
+  // Fallback: check public folder for static assets (like manifest.json and service-worker.js)
+  if (!fs.existsSync(filePath)) {
+    const publicPath = path.resolve(__dirname, 'public' + safePath);
+    if (fs.existsSync(publicPath) && publicPath.startsWith(__dirname)) {
+      filePath = publicPath;
+    }
   }
 
   const ext = path.extname(filePath).toLowerCase();

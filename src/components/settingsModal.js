@@ -22,7 +22,12 @@ export class SettingsModal {
   init() {
     // Load saved API key
     if (this.inputApiKey) {
-      this.inputApiKey.value = storage.getGeminiKey();
+      const savedKey = storage.getGeminiKey();
+      if (savedKey) {
+        this.inputApiKey.value = savedKey;
+      } else if (import.meta.env?.VITE_GEMINI_API_KEY) {
+        this.inputApiKey.placeholder = 'Chave do ambiente (.env/Vercel) ativa ✓';
+      }
     }
 
     // Load Currency

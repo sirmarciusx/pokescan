@@ -10,7 +10,7 @@ class GeminiVisionService {
    * @returns {Promise<Object>} Identified card metadata
    */
   async identifyCard(imageSource) {
-    const apiKey = storage.getGeminiKey();
+    const apiKey = storage.getGeminiKey() || (import.meta.env?.VITE_GEMINI_API_KEY || '');
     if (!apiKey) {
       throw new Error('CHAVE_NAO_CONFIGURADA');
     }
