@@ -20,6 +20,7 @@
   
   <link rel="stylesheet" href="./src/styles/variables.css" />
   <link rel="stylesheet" href="./src/styles/main.css" />
+  <link rel="stylesheet" href="./src/styles/home.css" />
   <link rel="stylesheet" href="./src/styles/scanner.css" />
   <link rel="stylesheet" href="./src/styles/card.css" />
   <link rel="stylesheet" href="./src/styles/collection.css" />
@@ -60,8 +61,127 @@
     <!-- Main Content Area -->
     <main class="app-main">
       
+      <!-- TAB 0: HOME / TELA PRINCIPAL -->
+      <section id="viewHome" class="view-panel active">
+        <div class="home-wrapper">
+          
+          <!-- Hero Banner -->
+          <div class="home-hero-card">
+            <div class="home-hero-badge">
+              <span class="badge-dot"></span>
+              <span>SISTEMA DE IDENTIFICAÇÃO PRONTO</span>
+            </div>
+
+            <div class="home-hero-brand">
+              <div class="home-pokeball-glow">
+                <img src="/icon-192.png" alt="PokeScan Logo" class="home-hero-icon" />
+              </div>
+              <div class="home-hero-text">
+                <h1 class="home-hero-title">Identifique & Avalie Cartas Pokémon</h1>
+                <p class="home-hero-subtitle">Reconhecimento visual por IA, leitor OCR em tempo real e cotações de mercado oficiais.</p>
+              </div>
+            </div>
+
+            <!-- MAIN ACTION BUTTON: ESCANEAR CARTA (LIGA A CÂMERA) -->
+            <div class="home-hero-cta">
+              <button id="btnHomeStartScan" class="btn-home-scan-primary">
+                <div class="scan-btn-inner">
+                  <div class="scan-icon-pulse">
+                    <i data-lucide="scan-line"></i>
+                  </div>
+                  <div class="scan-btn-labels">
+                    <span class="scan-title">Escanear Carta Agora</span>
+                    <span class="scan-sub">Toque para abrir o leitor de câmera</span>
+                  </div>
+                  <i data-lucide="chevron-right" class="scan-arrow"></i>
+                </div>
+              </button>
+
+              <button id="btnHomeManualSearch" class="btn-home-search-secondary">
+                <i data-lucide="search"></i>
+                <span>Buscar por Nome / Número</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Quick Stats & Highlights Grid -->
+          <div class="home-grid-cards">
+            
+            <!-- Card: Coleção & Binder -->
+            <div class="home-card-widget" id="widgetHomeCollection">
+              <div class="widget-header">
+                <div class="widget-icon-pill icon-cyan"><i data-lucide="layers"></i></div>
+                <span class="widget-tag">Sua Pasta</span>
+              </div>
+              <div class="widget-body">
+                <span class="widget-label">Total em Coleção</span>
+                <div class="widget-val-row">
+                  <h3 class="widget-value" id="homeCollectionValDisplay">R$ 0,00</h3>
+                  <span class="widget-counter" id="homeCollectionCountDisplay">0 cartas</span>
+                </div>
+              </div>
+              <div class="widget-footer">
+                <span>Acessar Coleção</span>
+                <i data-lucide="arrow-right"></i>
+              </div>
+            </div>
+
+            <!-- Card: Modos de Leitura -->
+            <div class="home-card-widget" id="widgetHomeTech">
+              <div class="widget-header">
+                <div class="widget-icon-pill icon-purple"><i data-lucide="sparkles"></i></div>
+                <span class="widget-tag">Tecnologia</span>
+              </div>
+              <div class="widget-body">
+                <span class="widget-label">Modos de Scanner</span>
+                <h3 class="widget-value-sm">IA Vision + OCR Flash</h3>
+                <p class="widget-desc">Identificação visual de artes raras e leitura precisa de números de coleção.</p>
+              </div>
+              <div class="widget-footer">
+                <span>Pronto para uso</span>
+                <span class="dot-online"></span>
+              </div>
+            </div>
+
+            <!-- Card: Cotação de Mercado -->
+            <div class="home-card-widget" id="widgetHomeCurrency">
+              <div class="widget-header">
+                <div class="widget-icon-pill icon-gold"><i data-lucide="trending-up"></i></div>
+                <span class="widget-tag">Mercado</span>
+              </div>
+              <div class="widget-body">
+                <span class="widget-label">Fontes de Preço</span>
+                <h3 class="widget-value-sm">TCGplayer & Cardmarket</h3>
+                <p class="widget-desc">Cotações em USD com conversão automática para BRL.</p>
+              </div>
+              <div class="widget-footer">
+                <span>Câmbio Ativo</span>
+                <strong class="currency-tag" id="homeExchangeTag">USD ➔ BRL</strong>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Quick Shortcuts / Popular Cards -->
+          <div class="home-shortcuts-section">
+            <div class="shortcuts-header">
+              <h4>⚡ Consultas Rápidas Populares:</h4>
+            </div>
+            <div class="shortcuts-chips">
+              <button class="shortcut-chip" data-query="Charizard 151">🔥 Charizard 151</button>
+              <button class="shortcut-chip" data-query="Pikachu">⚡ Pikachu</button>
+              <button class="shortcut-chip" data-query="Mewtwo VSTAR">🔮 Mewtwo VSTAR</button>
+              <button class="shortcut-chip" data-query="Umbreon VMAX">🌙 Umbreon VMAX</button>
+              <button class="shortcut-chip" data-query="Gengar">👻 Gengar</button>
+              <button class="shortcut-chip" data-query="Iono">✨ Iono (Trainer)</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
       <!-- TAB 1: SCANNER VIEW -->
-      <section id="viewScanner" class="view-panel active">
+      <section id="viewScanner" class="view-panel">
         <div class="scanner-wrapper">
           
           <!-- Camera Viewport -->
@@ -312,7 +432,11 @@
 
     <!-- Bottom Navigation Bar -->
     <nav class="app-bottom-nav">
-      <button class="nav-item active" data-tab="scanner">
+      <button class="nav-item active" data-tab="home">
+        <i data-lucide="home"></i>
+        <span>Início</span>
+      </button>
+      <button class="nav-item" data-tab="scanner">
         <i data-lucide="scan-line"></i>
         <span>Scanner</span>
       </button>

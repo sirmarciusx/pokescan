@@ -17,11 +17,12 @@ import { escapeHtml } from './utils/sanitize.js';
 
 class App {
   constructor() {
-    this.currentTab = 'scanner';
+    this.currentTab = 'home';
     this.scanMode = 'ai'; // 'ai' or 'ocr'
 
     // DOM Elements
     this.viewPanels = {
+      home: document.getElementById('viewHome'),
       scanner: document.getElementById('viewScanner'),
       collection: document.getElementById('viewCollection'),
       settings: document.getElementById('viewSettings')
@@ -45,7 +46,10 @@ class App {
     this.cardModal = new CardDetailModal({
       modalElement: document.getElementById('cardDetailModal'),
       contentElement: document.getElementById('cardModalContent'),
-      onCollectionChange: () => this.collectionView.refresh()
+      onCollectionChange: () => {
+        this.collectionView.refresh();
+        this.updateHomeDashboard();
+      }
     });
 
     this.searchModal = new SearchModal({
@@ -63,6 +67,7 @@ class App {
       onCurrencyChange: () => {
         this.updateCurrencyUI();
         this.collectionView.refresh();
+        this.updateHomeDashboard();
       }
     });
 
@@ -82,13 +87,14 @@ class App {
       onCapture: (canvas) => this.processScan(canvas)
     });
 
-    await this.scanner.startCamera();
-
+    // Camera will ONLY start when user clicks "Escanear Carta Agora" or navigates to Scanner tab
     this.bindNavigation();
+    this.bindHomeEvents();
     this.bindScannerControls();
     this.bindCurrencyToggle();
 
     await this.collectionView.refresh();
+    await this.updateHomeDashboard();
     this.updateCurrencyUI();
 
     this.registerServiceWorker();
@@ -134,11 +140,95 @@ class App {
       this.scanner.stopCamera();
     }
 
+    if (tabId === 'home') {
+      this.updateHomeDashboard();
+    }
+
     if (tabId === 'collection') {
       this.collectionView.refresh();
     }
 
     if (window.lucide) window.lucide.createIcons();
+  }
+
+  bindHomeEvents() {
+    const btnScan = document.getElementById('btnHomeStartScan');
+    if (btnScan) {
+      btnScan.addEventListener('click', () => {
+        sound.playTap();
+        this.switchTab('scanner');
+      });
+    }
+
+    const btnManual = document.getElementById('btnHomeManualSearch');
+    if (btnManual) {
+      btnManual.addEventListener('click', () => {
+        sound.playTap();
+        this.searchModal.show();
+      });
+    }
+
+    const widgetCollection = document.getElementById('widgetHomeCollection');
+    if (widgetCollection) {
+      widgetCollection.addEventListener('click', () => {
+        sound.playTap();
+        this.switchTab('collection');
+      });
+    }
+
+    const widgetTech = document.getElementById('widgetHomeTech');
+    if (widgetTech) {
+      widgetTech.addEventListener('click', () => {
+        sound.playTap();
+        this.switchTab('scanner');
+      });
+    }
+
+    const widgetCurrency = document.getElementById('widgetHomeCurrency');
+    if (widgetCurrency) {
+      widgetCurrency.addEventListener('click', () => {
+        sound.playTap();
+        this.switchTab('settings');
+      });
+    }
+
+    const shortcutChips = document.querySelectorAll('.shortcut-chip');
+    shortcutChips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        sound.playTap();
+        const query = chip.dataset.query;
+        this.searchModal.show();
+        if (this.searchModal.input) {
+          this.searchModal.input.value = query;
+          this.searchModal.performSearch(query);
+        }
+      });
+    });
+  }
+
+  async updateHomeDashboard() {
+    try {
+      const cards = await storage.getAllCards();
+      const count = Array.isArray(cards) ? cards.length : 0;
+      let totalUsd = 0;
+      if (Array.isArray(cards)) {
+        cards.forEach(c => {
+          totalUsd += (parseFloat(c.marketPriceUsd) || 0);
+        });
+      }
+
+      const homeVal = document.getElementById('homeCollectionValDisplay');
+      const homeCount = document.getElementById('homeCollectionCountDisplay');
+      const homeExchange = document.getElementById('homeExchangeTag');
+
+      if (homeVal) homeVal.textContent = currency.format(totalUsd);
+      if (homeCount) homeCount.textContent = `${count} ${count === 1 ? 'carta' : 'cartas'}`;
+      if (homeExchange) {
+        homeExchange.textContent = `${currency.getCurrency()} (${currency.getCurrency() === 'BRL' ? 'R$' : '$'})`;
+      }
+    } catch (e) {
+      console.warn('Erro ao atualizar dashboard da home:', e);
+    }
   }
 
   bindScannerControls() {
