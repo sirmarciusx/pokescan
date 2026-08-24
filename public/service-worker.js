@@ -6,7 +6,11 @@ const CACHE_NAME = 'pokescan-v2';
 const CORE_SHELL_ASSETS = [
   '/',
   '/index.html',
-  '/manifest.json'
+  '/manifest.json',
+  '/favicon.png',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png'
 ];
 
 // Install Event - Pre-cache core shell safely
