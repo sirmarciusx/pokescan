@@ -4,6 +4,7 @@
 import { storage } from '../services/storageService.js';
 import { currency } from '../services/currencyService.js';
 import { sound } from '../services/soundService.js';
+import { escapeHtml, sanitizeUrl } from '../utils/sanitize.js';
 
 export class CollectionView {
   constructor({ container, onSelectCard, onNavigateToScanner }) {
@@ -82,7 +83,6 @@ export class CollectionView {
     this.allCards = await storage.getAllCards();
     const stats = await storage.getCollectionStats();
 
-    // Update Header and Summary
     const formattedTotal = currency.format(stats.totalUsd);
     if (this.totalValEl) this.totalValEl.textContent = formattedTotal;
     if (this.headerValEl) this.headerValEl.textContent = formattedTotal;
@@ -119,7 +119,7 @@ export class CollectionView {
       if (sort === 'val_desc') return priceB - priceA;
       if (sort === 'val_asc') return priceA - priceB;
       if (sort === 'date_desc') return (b.dateAdded || 0) - (a.dateAdded || 0);
-      if (sort === 'name_asc') return a.name.localeCompare(b.name);
+      if (sort === 'name_asc') return (a.name || '').localeCompare(b.name || '');
       return 0;
     });
 
@@ -137,26 +137,30 @@ export class CollectionView {
 
     this.emptyState.classList.add('hidden');
     this.grid.innerHTML = cards.map(card => {
-      const img = card.images?.small || card.images?.large || '';
+      const rawImg = card.images?.small || card.images?.large || '';
+      const img = escapeHtml(sanitizeUrl(rawImg));
       const price = card.marketPriceUsd || 0;
       const isFoil = card.variant === 'holofoil' || card.variant === 'reverseHolofoil';
+      const cardName = escapeHtml(card.name);
+      const setName = escapeHtml(card.set?.name || 'Coleção');
+      const cardNum = escapeHtml(card.number || '');
+      const cardId = escapeHtml(card.id);
 
       return `
-        <div class="collection-card-item" data-id="${card.id}">
+        <div class="collection-card-item" data-id="${cardId}">
           <div class="card-item-img-wrap">
-            <img src="${img}" alt="${card.name}" loading="lazy" />
+            <img src="${img}" alt="${cardName}" loading="lazy" />
             ${isFoil ? `<span class="card-item-foil-badge">FOIL</span>` : ''}
           </div>
           <div class="card-item-info">
-            <span class="card-item-name">${card.name}</span>
-            <span class="card-item-set">${card.set?.name || 'Coleção'} #${card.number || ''}</span>
+            <span class="card-item-name">${cardName}</span>
+            <span class="card-item-set">${setName} #${cardNum}</span>
             <span class="card-item-price">${currency.format(price)}</span>
           </div>
         </div>
       `;
     }).join('');
 
-    // Attach click listeners to view details
     this.grid.querySelectorAll('.collection-card-item').forEach(itemEl => {
       itemEl.addEventListener('click', () => {
         const id = itemEl.dataset.id;

@@ -23,9 +23,13 @@ const MIME_TYPES = {
 };
 
 const server = http.createServer((req, res) => {
+  // Security Headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
@@ -33,10 +37,27 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  let reqPath = decodeURI(req.url.split('?')[0]);
-  if (reqPath === '/' || reqPath === '') reqPath = '/index.html';
+  // Sanitize path against Directory Traversal (../)
+  let safePath;
+  try {
+    const rawPath = decodeURI(req.url.split('?')[0]);
+    const normalized = path.normalize(rawPath).replace(/^(\.\.[\/\\])+/, '');
+    safePath = (normalized === '/' || normalized === '\\' || normalized === '') ? '/index.html' : normalized;
+  } catch (e) {
+    res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('400 Bad Request');
+    return;
+  }
 
-  const filePath = path.join(__dirname, reqPath);
+  const filePath = path.resolve(__dirname, '.' + safePath);
+
+  // Strict check: Ensure the resolved file path is inside __dirname
+  if (!filePath.startsWith(__dirname)) {
+    res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+    res.end('403 Forbidden: Acesso Negado');
+    return;
+  }
+
   const ext = path.extname(filePath).toLowerCase();
   const contentType = MIME_TYPES[ext] || 'application/octet-stream';
 
@@ -71,7 +92,7 @@ function getLocalIp() {
 server.listen(PORT, '0.0.0.0', () => {
   const localIp = getLocalIp();
   console.log(`\n======================================================`);
-  console.log(`🚀 PokeScan TCG App rodando com sucesso!`);
+  console.log(`🚀 PokeScan TCG App rodando com segurança!`);
   console.log(`💻 Acesso Local (PC):        http://localhost:${PORT}`);
   console.log(`📱 Acesso no Celular (Wi-Fi): http://${localIp}:${PORT}`);
   console.log(`======================================================\n`);

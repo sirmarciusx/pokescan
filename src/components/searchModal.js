@@ -4,6 +4,7 @@
 import { pokemonApi } from '../services/pokemonApi.js';
 import { currency } from '../services/currencyService.js';
 import { sound } from '../services/soundService.js';
+import { escapeHtml } from '../utils/sanitize.js';
 
 export class SearchModal {
   constructor({ modalElement, onSelectCard }) {
@@ -123,10 +124,11 @@ export class SearchModal {
     if (!this.resultsList) return;
 
     if (results.length === 0) {
+      const safeTerm = escapeHtml(term);
       this.resultsList.innerHTML = `
         <div class="search-placeholder">
           <i data-lucide="alert-circle"></i>
-          <p>Nenhuma carta encontrada para "${term}". Verifique a digitação ou tente o nome em inglês.</p>
+          <p>Nenhuma carta encontrada para "${safeTerm}". Verifique a digitação ou tente o nome em inglês.</p>
         </div>
       `;
       if (window.lucide) window.lucide.createIcons();
@@ -134,15 +136,20 @@ export class SearchModal {
     }
 
     this.resultsList.innerHTML = results.map(card => {
-      const img = card.images?.small || card.images?.large || '';
+      const img = escapeHtml(card.images?.small || card.images?.large || '');
       const price = card.marketPriceUsd || card.prices?.market || 0;
+      const cardName = escapeHtml(card.name);
+      const setName = escapeHtml(card.set?.name || 'Coleção');
+      const cardNum = escapeHtml(card.number || '');
+      const cardRarity = escapeHtml(card.rarity || 'Comum');
+      const cardId = escapeHtml(card.id);
 
       return `
-        <div class="search-result-item" data-id="${card.id}">
-          <img src="${img}" alt="${card.name}" class="search-result-thumb" loading="lazy" />
+        <div class="search-result-item" data-id="${cardId}">
+          <img src="${img}" alt="${cardName}" class="search-result-thumb" loading="lazy" />
           <div class="search-result-details">
-            <span class="search-result-title">${card.name}</span>
-            <span class="search-result-set">${card.set?.name || 'Coleção'} #${card.number || ''} • ${card.rarity || 'Comum'}</span>
+            <span class="search-result-title">${cardName}</span>
+            <span class="search-result-set">${setName} #${cardNum} • ${cardRarity}</span>
           </div>
           <div class="search-result-price">
             ${currency.format(price)}

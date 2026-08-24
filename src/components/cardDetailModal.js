@@ -5,6 +5,7 @@ import { currency } from '../services/currencyService.js';
 import { storage } from '../services/storageService.js';
 import { sound } from '../services/soundService.js';
 import { initHoloTilt } from './holographicCard.js';
+import { escapeHtml, sanitizeUrl } from '../utils/sanitize.js';
 
 let confettiFn = null;
 async function getConfetti() {
@@ -87,24 +88,39 @@ export class CardDetailModal {
     const marketPriceUsd = card.marketPriceUsd || card.prices?.market || 0;
     const isUltra = card.rarity && (card.rarity.includes('Ultra') || card.rarity.includes('Secret') || card.rarity.includes('Special') || card.rarity.includes('VMAX') || card.rarity.includes('ex'));
     
-    const typeBadges = (card.types || []).map(t => `<span class="card-badge" style="border-color: var(--type-${t.toLowerCase()}, var(--accent-cyan)); color: var(--type-${t.toLowerCase()}, var(--accent-cyan))">${t}</span>`).join('');
+    const typeBadges = (card.types || []).map(t => {
+      const safeT = escapeHtml(t);
+      const safeLower = escapeHtml(t.toLowerCase());
+      return `<span class="card-badge" style="border-color: var(--type-${safeLower}, var(--accent-cyan)); color: var(--type-${safeLower}, var(--accent-cyan))">${safeT}</span>`;
+    }).join('');
     
     const attacksHtml = (card.attacks || []).map(a => `
       <div class="attack-item">
         <div class="attack-header">
-          <span class="attack-name">${a.name}</span>
-          ${a.damage ? `<span class="attack-damage">${a.damage}</span>` : ''}
+          <span class="attack-name">${escapeHtml(a.name)}</span>
+          ${a.damage ? `<span class="attack-damage">${escapeHtml(a.damage)}</span>` : ''}
         </div>
-        ${a.text ? `<p class="attack-text">${a.text}</p>` : ''}
+        ${a.text ? `<p class="attack-text">${escapeHtml(a.text)}</p>` : ''}
       </div>
     `).join('');
 
-    const cardImgUrl = card.images?.large || card.images?.small || 'https://images.pokemontcg.io/sv3pt5/199_hires.png';
+    const rawImgUrl = card.images?.large || card.images?.small || 'https://images.pokemontcg.io/sv3pt5/199_hires.png';
+    const cardImgUrl = escapeHtml(sanitizeUrl(rawImgUrl));
+    const cardName = escapeHtml(card.name);
+    const setName = escapeHtml(card.set?.name || 'Coleção TCG');
+    const cardNumber = escapeHtml(card.number || '?');
+    const setTotal = escapeHtml(card.set?.total ? `/${card.set.total}` : '');
+    const cardHp = escapeHtml(card.hp);
+    const cardRarity = escapeHtml(card.rarity || 'Carta TCG');
+    const cardArtist = escapeHtml(card.artist);
+
+    const tcgplayerUrl = escapeHtml(sanitizeUrl(card.links?.tcgplayer));
+    const ligapokemonUrl = escapeHtml(sanitizeUrl(card.links?.ligapokemon));
 
     this.content.innerHTML = `
       <div class="holo-card-container">
         <div class="holo-card">
-          <img src="${cardImgUrl}" alt="${card.name}" class="holo-card-img" crossorigin="anonymous" />
+          <img src="${cardImgUrl}" alt="${cardName}" class="holo-card-img" crossorigin="anonymous" />
           <div class="holo-card-glare"></div>
           <div class="holo-card-sparkles"></div>
         </div>
@@ -112,25 +128,25 @@ export class CardDetailModal {
 
       <div class="card-meta-header">
         <div class="card-title-group">
-          <h2 class="card-title-name">${card.name}</h2>
+          <h2 class="card-title-name">${cardName}</h2>
           <div class="card-subtitle-set">
-            <span>${card.set?.name || 'Coleção TCG'}</span>
+            <span>${setName}</span>
             <span>•</span>
-            <span>#${card.number || '?'}${card.set?.total ? `/${card.set.total}` : ''}</span>
+            <span>#${cardNumber}${setTotal}</span>
           </div>
         </div>
-        ${card.hp ? `
+        ${cardHp ? `
           <div class="card-hp-badge">
             <span class="card-hp-label">HP</span>
-            <span class="card-hp-val">${card.hp}</span>
+            <span class="card-hp-val">${cardHp}</span>
           </div>
         ` : ''}
       </div>
 
       <div class="card-tags-row">
         ${typeBadges}
-        <span class="card-badge ${isUltra ? 'rarity-ultra' : 'rarity-holo'}">${card.rarity || 'Carta TCG'}</span>
-        ${card.artist ? `<span class="card-badge">🎨 ${card.artist}</span>` : ''}
+        <span class="card-badge ${isUltra ? 'rarity-ultra' : 'rarity-holo'}">${cardRarity}</span>
+        ${cardArtist ? `<span class="card-badge">🎨 ${cardArtist}</span>` : ''}
       </div>
 
       <div class="pricing-section">
@@ -188,10 +204,10 @@ export class CardDetailModal {
         </button>
 
         <div class="external-market-links">
-          <a href="${card.links?.tcgplayer || '#'}" target="_blank" rel="noopener noreferrer" class="btn-market-link">
+          <a href="${tcgplayerUrl}" target="_blank" rel="noopener noreferrer" class="btn-market-link">
             <span>Ver no TCGplayer</span> ↗
           </a>
-          <a href="${card.links?.ligapokemon || '#'}" target="_blank" rel="noopener noreferrer" class="btn-market-link">
+          <a href="${ligapokemonUrl}" target="_blank" rel="noopener noreferrer" class="btn-market-link">
             <span>🇧🇷 LigaPokémon</span> ↗
           </a>
         </div>

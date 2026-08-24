@@ -12,6 +12,7 @@ import { ocrService } from './services/ocrService.js';
 import { currency } from './services/currencyService.js';
 import { sound } from './services/soundService.js';
 import { storage } from './services/storageService.js';
+import { escapeHtml } from './utils/sanitize.js';
 
 class App {
   constructor() {
@@ -36,12 +37,10 @@ class App {
   }
 
   async init() {
-    // 1. Initialize Lucide Icons
     if (window.lucide) {
       window.lucide.createIcons();
     }
 
-    // 2. Initialize Modals & Views
     this.cardModal = new CardDetailModal({
       modalElement: document.getElementById('cardDetailModal'),
       contentElement: document.getElementById('cardModalContent'),
@@ -66,7 +65,6 @@ class App {
       }
     });
 
-    // 3. Initialize Camera Scanner
     this.scanner = new CameraScanner({
       videoElement: document.getElementById('cameraVideo'),
       canvasElement: document.getElementById('captureCanvas'),
@@ -74,19 +72,15 @@ class App {
       onCapture: (canvas) => this.processScan(canvas)
     });
 
-    // Start Camera on load
     await this.scanner.startCamera();
 
-    // 4. Bind Global Navigation and Controls
     this.bindNavigation();
     this.bindScannerControls();
     this.bindCurrencyToggle();
 
-    // 5. Initial Collection Data Load
     await this.collectionView.refresh();
     this.updateCurrencyUI();
 
-    // 6. Register PWA Service Worker if available
     this.registerServiceWorker();
   }
 
@@ -111,13 +105,11 @@ class App {
 
     this.currentTab = tabId;
 
-    // Update active nav button
     this.navItems.forEach(item => {
       if (item.dataset.tab === tabId) item.classList.add('active');
       else if (item.dataset.tab !== 'search') item.classList.remove('active');
     });
 
-    // Update active view panel
     Object.keys(this.viewPanels).forEach(key => {
       if (key === tabId) {
         this.viewPanels[key].classList.add('active');
@@ -126,7 +118,6 @@ class App {
       }
     });
 
-    // Manage camera active state
     if (tabId === 'scanner') {
       this.scanner.startCamera();
     } else {
@@ -141,7 +132,6 @@ class App {
   }
 
   bindScannerControls() {
-    // Mode Switcher (AI vs OCR)
     const modeBtns = document.querySelectorAll('.mode-btn');
     modeBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -153,7 +143,6 @@ class App {
       });
     });
 
-    // Flash / Torch toggle
     const btnTorch = document.getElementById('btnToggleTorch');
     if (btnTorch) {
       btnTorch.addEventListener('click', async () => {
@@ -162,13 +151,11 @@ class App {
       });
     }
 
-    // Camera Switch (Front/Back)
     const btnSwitch = document.getElementById('btnSwitchCamera');
     if (btnSwitch) {
       btnSwitch.addEventListener('click', () => this.scanner.switchCamera());
     }
 
-    // Zoom Buttons
     const zoomBtns = document.querySelectorAll('.zoom-btn');
     zoomBtns.forEach(btn => {
       btn.addEventListener('click', () => {
@@ -180,7 +167,6 @@ class App {
       });
     });
 
-    // Main Shutter Button
     const btnCapture = document.getElementById('btnCaptureScan');
     if (btnCapture) {
       btnCapture.addEventListener('click', () => {
@@ -195,7 +181,6 @@ class App {
       });
     }
 
-    // Upload from Gallery Button
     const btnUpload = document.getElementById('btnUploadImage');
     const fileInput = document.getElementById('fileImageInput');
     if (btnUpload && fileInput) {
@@ -222,7 +207,6 @@ class App {
       });
     }
 
-    // Quick Search Button on scanner bottom bar
     const btnQuickSearch = document.getElementById('btnQuickSearch');
     if (btnQuickSearch) {
       btnQuickSearch.addEventListener('click', () => {
@@ -272,7 +256,6 @@ class App {
       let candidateName = '';
       let candidateNumber = '';
 
-      // MODE 1: Gemini Vision AI
       if (this.scanMode === 'ai' && storage.getGeminiKey()) {
         try {
           this.showStatus('Consultando IA Vision...');
@@ -287,7 +270,6 @@ class App {
         }
       }
 
-      // MODE 2: Local OCR Fallback / Primary
       if (!candidateName) {
         this.showStatus('Lendo número e nome da carta...');
         const ocrResult = await ocrService.recognizeCard(canvas);
@@ -299,7 +281,6 @@ class App {
 
       this.showStatus('Buscando cotações e dados...');
 
-      // Search Card in Pokémon TCG databases
       let results = [];
       if (candidateName || candidateNumber) {
         results = await pokemonApi.searchCards({
@@ -314,9 +295,7 @@ class App {
         const topCard = results[0];
         this.cardModal.show(topCard);
       } else {
-        // No match found
         this.showToast('Carta não reconhecida com precisão. Tente focar melhor ou busque manualmente.', 'error');
-        // Open search modal with partial name if available
         if (candidateName) {
           this.searchModal.show();
           if (this.searchModal.input) {
@@ -337,7 +316,7 @@ class App {
     if (!this.toastContainer) return;
     const toast = document.createElement('div');
     toast.className = `toast ${type === 'error' ? 'toast-error' : (type === 'success' ? 'toast-success' : '')}`;
-    toast.innerHTML = `<span>${message}</span>`;
+    toast.innerHTML = `<span>${escapeHtml(message)}</span>`;
     this.toastContainer.appendChild(toast);
 
     setTimeout(() => {
@@ -355,7 +334,6 @@ class App {
   }
 }
 
-// Start application when DOM is ready
 window.addEventListener('DOMContentLoaded', () => {
   window.pokeApp = new App();
 });
