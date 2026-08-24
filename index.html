@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#080c14" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Scanner e leitor de cartas Pokémon TCG com reconhecimento visual por câmera e cotação de mercado em tempo real." />
+  <title>PokeScan TCG - Leitor & Cotação de Cartas</title>
+  
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Outfit:wght@300;400;500;600;700;800;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet" />
+  
+  <link rel="stylesheet" href="./src/styles/variables.css" />
+  <link rel="stylesheet" href="./src/styles/main.css" />
+  <link rel="stylesheet" href="./src/styles/scanner.css" />
+  <link rel="stylesheet" href="./src/styles/card.css" />
+  <link rel="stylesheet" href="./src/styles/collection.css" />
+  <link rel="stylesheet" href="./src/styles/modal.css" />
+
+  <!-- High Performance CDNs -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body class="theme-dark">
+  <div id="app" class="app-container">
+    
+    <!-- Top Header HUD -->
+    <header class="app-header">
+      <div class="header-brand">
+        <div class="brand-logo-wrap">
+          <div class="pokeball-icon">
+            <span class="pokeball-core"></span>
+          </div>
+          <div class="brand-title">
+            <span class="brand-text">POKE<span class="brand-accent">SCAN</span></span>
+            <span class="brand-sub">TCG VALUER & BINDER</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-stats">
+        <div class="stat-pill" id="headerCollectionPill" title="Valor total da coleção">
+          <span class="stat-label">COLEÇÃO</span>
+          <span class="stat-value" id="headerCollectionValue">R$ 0,00</span>
+        </div>
+        <button id="btnToggleCurrency" class="btn-icon-pill" title="Alternar Moeda (BRL / USD)">
+          <span id="currentCurrencyLabel">BRL (R$)</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="app-main">
+      
+      <!-- TAB 1: SCANNER VIEW -->
+      <section id="viewScanner" class="view-panel active">
+        <div class="scanner-wrapper">
+          
+          <!-- Camera Viewport -->
+          <div class="camera-viewport" id="cameraViewport">
+            <video id="cameraVideo" playsinline autoplay muted></video>
+            <canvas id="captureCanvas" class="hidden-canvas"></canvas>
+            
+            <!-- Scan Overlay & Guides -->
+            <div class="scanner-overlay">
+              
+              <!-- Card Guide Bounding Box -->
+              <div class="card-frame" id="cardFrame">
+                <div class="corner top-left"></div>
+                <div class="corner top-right"></div>
+                <div class="corner bottom-left"></div>
+                <div class="corner bottom-right"></div>
+                
+                <!-- Laser Scan Line -->
+                <div class="scan-laser" id="scanLaser"></div>
+
+                <!-- Frame Helper Text -->
+                <div class="frame-guide-text">
+                  <span>Enquadre a carta Pokémon aqui</span>
+                  <small>Foque no nome e no número no rodapé</small>
+                </div>
+              </div>
+
+              <!-- Top Floating Controls -->
+              <div class="scanner-top-controls">
+                <button id="btnToggleTorch" class="btn-glass-icon" title="Lanterna" aria-label="Lanterna">
+                  <i data-lucide="zap"></i>
+                </button>
+                
+                <div class="scanner-mode-selector">
+                  <button class="mode-btn active" data-mode="ai" title="Reconhecimento Visual por IA">
+                    <i data-lucide="sparkles"></i> <span>IA Vision</span>
+                  </button>
+                  <button class="mode-btn" data-mode="ocr" title="Leitura de Código e Nome via OCR">
+                    <i data-lucide="scan-text"></i> <span>OCR</span>
+                  </button>
+                </div>
+
+                <button id="btnSwitchCamera" class="btn-glass-icon" title="Trocar Câmera" aria-label="Trocar Câmera">
+                  <i data-lucide="switch-camera"></i>
+                </button>
+              </div>
+
+              <!-- Zoom Controls -->
+              <div class="scanner-zoom-bar">
+                <button class="zoom-btn active" data-zoom="1">1x</button>
+                <button class="zoom-btn" data-zoom="2">2x</button>
+              </div>
+
+              <!-- Status & Alert Banner -->
+              <div id="scannerStatusBanner" class="scanner-status-banner hidden">
+                <div class="status-spinner"></div>
+                <span id="scannerStatusText">Identificando carta...</span>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Bottom Camera Action Controls -->
+          <div class="scanner-actions-bar">
+            <button id="btnUploadImage" class="btn-action-secondary" title="Carregar foto da galeria">
+              <i data-lucide="image"></i>
+              <span>Foto</span>
+              <input type="file" id="fileImageInput" accept="image/*" class="hidden-input" />
+            </button>
+
+            <!-- Main Big Shutter Trigger -->
+            <button id="btnCaptureScan" class="btn-shutter" aria-label="Escanear Carta">
+              <div class="shutter-outer-ring">
+                <div class="shutter-inner-core">
+                  <i data-lucide="scan"></i>
+                </div>
+              </div>
+            </button>
+
+            <button id="btnQuickSearch" class="btn-action-secondary" title="Busca manual por nome ou código">
+              <i data-lucide="search"></i>
+              <span>Buscar</span>
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 2: COLLECTION / BINDER VIEW -->
+      <section id="viewCollection" class="view-panel">
+        <div class="collection-wrapper">
+          
+          <!-- Collection Summary Card -->
+          <div class="collection-hero-card">
+            <div class="hero-card-glow"></div>
+            <div class="hero-header">
+              <div>
+                <span class="hero-label">VALOR ESTIMADO DO BINDER</span>
+                <h2 class="hero-total-value" id="collectionTotalValue">R$ 0,00</h2>
+              </div>
+              <div class="collection-actions-dropdown">
+                <button id="btnExportCollection" class="btn-glass-sm" title="Exportar coleção">
+                  <i data-lucide="download"></i> <span>Exportar</span>
+                </button>
+                <button id="btnImportCollection" class="btn-glass-sm" title="Importar coleção">
+                  <i data-lucide="upload"></i> <span>Importar</span>
+                  <input type="file" id="fileImportCollection" accept=".json,.csv" class="hidden-input" />
+                </button>
+              </div>
+            </div>
+
+            <div class="hero-stats-row">
+              <div class="hero-mini-stat">
+                <span class="mini-stat-num" id="statTotalCards">0</span>
+                <span class="mini-stat-title">Cartas Salvas</span>
+              </div>
+              <div class="hero-mini-stat">
+                <span class="mini-stat-num" id="statTotalHolos">0</span>
+                <span class="mini-stat-title">Holográficas</span>
+              </div>
+              <div class="hero-mini-stat">
+                <span class="mini-stat-num" id="statRarestCard">-</span>
+                <span class="mini-stat-title">Mais Valiosa</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filters & Search -->
+          <div class="collection-toolbar">
+            <div class="search-input-wrapper">
+              <i data-lucide="search" class="search-icon"></i>
+              <input type="text" id="inputCollectionFilter" placeholder="Filtrar por nome, coleção, tipo..." />
+            </div>
+            <select id="selectCollectionSort" class="select-glass">
+              <option value="val_desc">Maior Valor</option>
+              <option value="val_asc">Menor Valor</option>
+              <option value="date_desc">Mais Recente</option>
+              <option value="name_asc">Nome (A-Z)</option>
+              <option value="rarity">Raridade</option>
+            </select>
+          </div>
+
+          <!-- Cards Grid -->
+          <div id="collectionGrid" class="collection-grid">
+            <!-- Cards rendered dynamically -->
+          </div>
+
+          <!-- Empty State -->
+          <div id="collectionEmptyState" class="empty-state">
+            <div class="empty-icon-wrap">
+              <i data-lucide="layers"></i>
+            </div>
+            <h3>Sua pasta está vazia</h3>
+            <p>Escaneie sua primeira carta Pokémon com a câmera para começar a monitorar os valores!</p>
+            <button id="btnEmptyGoScan" class="btn-primary-glow">
+              <i data-lucide="camera"></i> <span>Escanear Agora</span>
+            </button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- TAB 3: SETTINGS VIEW -->
+      <section id="viewSettings" class="view-panel">
+        <div class="settings-wrapper">
+          <div class="settings-header">
+            <h2>Configurações do PokeScan</h2>
+            <p>Personalize APIs de IA, moedas e preferências do scanner.</p>
+          </div>
+
+          <div class="settings-group">
+            <h3>🤖 Inteligência Artificial Vision</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <label for="inputGeminiApiKey">Chave API do Google Gemini (Opcional)</label>
+                <small>Permite reconhecimento visual instantâneo ultra-preciso de qualquer carta Pokémon (Gemini Flash).</small>
+              </div>
+              <div class="input-with-action">
+                <input type="password" id="inputGeminiApiKey" placeholder="Cole sua chave AI Studio aqui..." />
+                <button id="btnSaveApiKey" class="btn-primary-sm">Salvar</button>
+              </div>
+              <span class="setting-hint">💡 Se não possuir chave, o app usa OCR local + busca automática do banco de dados Pokémon TCG gratuitamente.</span>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3>💰 Moeda & Cotações</h3>
+            <div class="setting-item">
+              <div class="setting-info">
+                <label for="selectDefaultCurrency">Moeda Padrão de Exibição</label>
+                <small>Valores convertidos em tempo real pelo câmbio comercial.</small>
+              </div>
+              <select id="selectDefaultCurrency" class="select-glass">
+                <option value="BRL">Real Brasileiro (R$ - BRL)</option>
+                <option value="USD">Dólar Americano ($ - USD)</option>
+                <option value="EUR">Euro (€ - EUR)</option>
+              </select>
+            </div>
+            <div class="setting-item-row">
+              <span>Taxa de Câmbio USD ➔ BRL Atual:</span>
+              <strong id="settingExchangeRate">R$ 5.75</strong>
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3>🔊 Sons e Sensações</h3>
+            <div class="setting-toggle-item">
+              <div class="setting-info">
+                <label>Efeitos Sonoros Pokédex</label>
+                <small>Bipes e sons de sintetizador retro ao escanear e encontrar cartas.</small>
+              </div>
+              <input type="checkbox" id="toggleSoundFx" class="switch-input" checked />
+            </div>
+            <div class="setting-toggle-item">
+              <div class="setting-info">
+                <label>Vibração Háptica</label>
+                <small>Feedback tátil ao capturar no smartphone.</small>
+              </div>
+              <input type="checkbox" id="toggleHaptics" class="switch-input" checked />
+            </div>
+          </div>
+
+          <div class="settings-group">
+            <h3>ℹ️ Sobre o Aplicativo</h3>
+            <div class="about-card">
+              <p><strong>PokeScan TCG v1.0.0</strong></p>
+              <p>Dados de cartas fornecidos por <em>pokemontcg.io</em> e <em>TCGDex</em>. Preços de mercado baseados no <em>TCGplayer</em> e cotações internacionais.</p>
+              <p class="disclaimer">Pokémon e Pokémon TCG são marcas registradas da Nintendo / Creatures Inc. / GAME FREAK inc.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar -->
+    <nav class="app-bottom-nav">
+      <button class="nav-item active" data-tab="scanner">
+        <i data-lucide="scan-line"></i>
+        <span>Scanner</span>
+      </button>
+      <button class="nav-item" data-tab="collection">
+        <div class="nav-badge-wrap">
+          <i data-lucide="layers"></i>
+          <span class="nav-badge" id="navCollectionBadge">0</span>
+        </div>
+        <span>Coleção</span>
+      </button>
+      <button class="nav-item" data-tab="search">
+        <i data-lucide="search"></i>
+        <span>Buscar</span>
+      </button>
+      <button class="nav-item" data-tab="settings">
+        <i data-lucide="settings"></i>
+        <span>Ajustes</span>
+      </button>
+    </nav>
+
+    <!-- MODAL: CARD DETAILS & PRICING -->
+    <div id="cardDetailModal" class="modal-backdrop hidden">
+      <div class="modal-sheet">
+        <div class="modal-drag-handle"></div>
+        <button class="btn-modal-close" id="btnCloseCardModal" aria-label="Fechar">
+          <i data-lucide="x"></i>
+        </button>
+
+        <div class="modal-content" id="cardModalContent">
+          <!-- Dynamically populated card details -->
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL: MANUAL SEARCH -->
+    <div id="manualSearchModal" class="modal-backdrop hidden">
+      <div class="modal-sheet search-modal-sheet">
+        <div class="modal-drag-handle"></div>
+        <div class="modal-header-search">
+          <div class="search-input-wrapper">
+            <i data-lucide="search" class="search-icon"></i>
+            <input type="text" id="inputGlobalSearch" placeholder="Ex: Charizard 4/102, Pikachu 151, Mewtwo..." autofocus />
+            <button id="btnClearSearch" class="btn-clear-input hidden"><i data-lucide="x"></i></button>
+          </div>
+          <button class="btn-modal-close" id="btnCloseSearchModal"><i data-lucide="x"></i></button>
+        </div>
+
+        <div class="search-quick-tags">
+          <span>Sugestões:</span>
+          <button class="quick-tag" data-query="Charizard">Charizard</button>
+          <button class="quick-tag" data-query="Pikachu 151">Pikachu 151</button>
+          <button class="quick-tag" data-query="Mew VMAX">Mew VMAX</button>
+          <button class="quick-tag" data-query="Umbreon VMAX">Umbreon</button>
+          <button class="quick-tag" data-query="Gengar">Gengar</button>
+        </div>
+
+        <div id="searchResultsList" class="search-results-container">
+          <div class="search-placeholder">
+            <i data-lucide="sparkles"></i>
+            <p>Digite o nome do Pokémon ou número da carta para consultar valores instantaneamente.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast Notification Banner -->
+    <div id="toastContainer" class="toast-container"></div>
+
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>

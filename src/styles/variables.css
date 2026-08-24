@@ -1,0 +1,73 @@
+:root {
+  /* PokeScan Cyber-Holo Palette */
+  --bg-primary: #07090e;
+  --bg-secondary: #0e131f;
+  --bg-tertiary: #161f33;
+  --bg-glass: rgba(14, 19, 31, 0.75);
+  --bg-glass-heavy: rgba(8, 12, 20, 0.88);
+  --bg-glass-subtle: rgba(255, 255, 255, 0.04);
+  
+  /* Borders & Highlights */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --border-glass: rgba(0, 240, 255, 0.22);
+  --border-active: #00f0ff;
+  --border-gold: rgba(255, 215, 0, 0.4);
+  
+  /* Neon & Pokédex Accents */
+  --accent-cyan: #00f0ff;
+  --accent-cyan-glow: rgba(0, 240, 255, 0.45);
+  --accent-red: #ff2a55;
+  --accent-red-glow: rgba(255, 42, 85, 0.45);
+  --accent-yellow: #ffe600;
+  --accent-gold: #ffd700;
+  --accent-purple: #a855f7;
+  --accent-green: #10b981;
+  --accent-blue: #3b82f6;
+  
+  /* Text Colors */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #07090e;
+  --text-cyan: #38bdf8;
+  --text-gold: #fbbf24;
+  --text-green: #34d399;
+  
+  /* Energy Type Colors */
+  --type-grass: #7ac74c;
+  --type-fire: #ee8130;
+  --type-water: #6390f0;
+  --type-lightning: #f7d02c;
+  --type-psychic: #f95587;
+  --type-fighting: #c22e28;
+  --type-darkness: #705746;
+  --type-metal: #b7b7ce;
+  --type-dragon: #6f35fc;
+  --type-fairy: #d685ad;
+  --type-colorless: #a8a878;
+  
+  /* Typography */
+  --font-main: 'Outfit', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-tech: 'Rajdhani', monospace, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  
+  /* Layout & Geometry */
+  --header-height: 64px;
+  --nav-height: 72px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
+  --radius-full: 9999px;
+  
+  /* Shadows & Glows */
+  --glow-cyan: 0 0 20px rgba(0, 240, 255, 0.35);
+  --glow-red: 0 0 20px rgba(255, 42, 85, 0.35);
+  --glow-gold: 0 0 25px rgba(255, 215, 0, 0.35);
+  --shadow-card: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.7);
+  
+  /* Safe Area Insets for Mobile */
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
