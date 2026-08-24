@@ -41,6 +41,13 @@ export class CardDetailModal {
     this.modal.addEventListener('click', (e) => {
       if (e.target === this.modal) this.hide();
     });
+
+    // Keyboard ESC to close
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !this.modal.classList.contains('hidden')) {
+        this.hide();
+      }
+    });
   }
 
   async show(card) {
@@ -118,99 +125,111 @@ export class CardDetailModal {
     const ligapokemonUrl = escapeHtml(sanitizeUrl(card.links?.ligapokemon));
 
     this.content.innerHTML = `
-      <div class="holo-card-container">
-        <div class="holo-card">
-          <img src="${cardImgUrl}" alt="${cardName}" class="holo-card-img" crossorigin="anonymous" />
-          <div class="holo-card-glare"></div>
-          <div class="holo-card-sparkles"></div>
-        </div>
-      </div>
-
-      <div class="card-meta-header">
-        <div class="card-title-group">
-          <h2 class="card-title-name">${cardName}</h2>
-          <div class="card-subtitle-set">
-            <span>${setName}</span>
-            <span>•</span>
-            <span>#${cardNumber}${setTotal}</span>
+      <div class="card-detail-layout">
+        
+        <!-- Left Column: 3D Holographic Card & Badges -->
+        <div class="card-detail-left">
+          <div class="holo-card-container">
+            <div class="holo-card">
+              <img src="${cardImgUrl}" alt="${cardName}" class="holo-card-img" crossorigin="anonymous" />
+              <div class="holo-card-glare"></div>
+              <div class="holo-card-sparkles"></div>
+            </div>
           </div>
-        </div>
-        ${cardHp ? `
-          <div class="card-hp-badge">
-            <span class="card-hp-label">HP</span>
-            <span class="card-hp-val">${cardHp}</span>
-          </div>
-        ` : ''}
-      </div>
 
-      <div class="card-tags-row">
-        ${typeBadges}
-        <span class="card-badge ${isUltra ? 'rarity-ultra' : 'rarity-holo'}">${cardRarity}</span>
-        ${cardArtist ? `<span class="card-badge">🎨 ${cardArtist}</span>` : ''}
-      </div>
-
-      <div class="pricing-section">
-        <div class="pricing-header">
-          <span class="pricing-title">COTAÇÃO DE MERCADO</span>
-          <span class="pricing-source">TCGplayer / Live</span>
-        </div>
-
-        <div class="hero-price-box">
-          <div class="hero-price-info">
-            <span class="hero-price-label">Preço de Mercado Atual</span>
-            <span class="hero-price-amount" id="modalHeroPriceBrl">${currency.format(marketPriceUsd)}</span>
-          </div>
-          <div class="hero-price-alt">
-            <span>${currency.format(marketPriceUsd, 'USD')}</span>
+          <div class="card-tags-row" style="justify-content: center;">
+            ${typeBadges}
+            <span class="card-badge ${isUltra ? 'rarity-ultra' : 'rarity-holo'}">${cardRarity}</span>
+            ${cardArtist ? `<span class="card-badge">🎨 ${cardArtist}</span>` : ''}
           </div>
         </div>
 
-        <div class="condition-picker-section">
-          <span class="section-subtitle">Estado de Conservação:</span>
-          <div class="condition-buttons-row">
-            <button class="btn-condition active" data-cond="NM" title="Near Mint (Perfeita - 100%)">NM (100%)</button>
-            <button class="btn-condition" data-cond="LP" title="Lightly Played (Leves marcas - 85%)">LP (85%)</button>
-            <button class="btn-condition" data-cond="MP" title="Moderately Played (Marcas médias - 70%)">MP (70%)</button>
-            <button class="btn-condition" data-cond="DMG" title="Damaged (Danificada - 30%)">DMG (30%)</button>
+        <!-- Right Column: Meta, Prices, Condition & Actions -->
+        <div class="card-detail-right">
+          
+          <div class="card-meta-header">
+            <div class="card-title-group">
+              <h2 class="card-title-name">${cardName}</h2>
+              <div class="card-subtitle-set">
+                <span>${setName}</span>
+                <span>•</span>
+                <span>#${cardNumber}${setTotal}</span>
+              </div>
+            </div>
+            ${cardHp ? `
+              <div class="card-hp-badge">
+                <span class="card-hp-label">HP</span>
+                <span class="card-hp-val">${cardHp}</span>
+              </div>
+            ` : ''}
           </div>
+
+          <div class="pricing-section">
+            <div class="pricing-header">
+              <span class="pricing-title">COTAÇÃO DE MERCADO</span>
+              <span class="pricing-source">TCGplayer / Live</span>
+            </div>
+
+            <div class="hero-price-box">
+              <div class="hero-price-info">
+                <span class="hero-price-label">Preço de Mercado Atual</span>
+                <span class="hero-price-amount" id="modalHeroPriceBrl">${currency.format(marketPriceUsd)}</span>
+              </div>
+              <div class="hero-price-alt">
+                <span>${currency.format(marketPriceUsd, 'USD')}</span>
+              </div>
+            </div>
+
+            <div class="condition-picker-section">
+              <span class="section-subtitle">Estado de Conservação:</span>
+              <div class="condition-buttons-row">
+                <button class="btn-condition active" data-cond="NM" title="Near Mint (Perfeita - 100%)">NM (100%)</button>
+                <button class="btn-condition" data-cond="LP" title="Lightly Played (Leves marcas - 85%)">LP (85%)</button>
+                <button class="btn-condition" data-cond="MP" title="Moderately Played (Marcas médias - 70%)">MP (70%)</button>
+                <button class="btn-condition" data-cond="DMG" title="Damaged (Danificada - 30%)">DMG (30%)</button>
+              </div>
+            </div>
+
+            <div class="price-variants-grid">
+              <div class="price-variant-card">
+                <span class="variant-name">Normal</span>
+                <span class="variant-val">${currency.format(card.prices?.normal || 0)}</span>
+              </div>
+              <div class="price-variant-card">
+                <span class="variant-name">Holo Foil</span>
+                <span class="variant-val highlight">${currency.format(card.prices?.holofoil || marketPriceUsd)}</span>
+              </div>
+              <div class="price-variant-card">
+                <span class="variant-name">Rev. Holo</span>
+                <span class="variant-val">${currency.format(card.prices?.reverseHolofoil || 0)}</span>
+              </div>
+            </div>
+          </div>
+
+          ${attacksHtml ? `
+            <div class="card-attacks-list">
+              <span class="section-subtitle">Ataques e Habilidades:</span>
+              ${attacksHtml}
+            </div>
+          ` : ''}
+
+          <div class="card-modal-actions">
+            <button id="btnToggleSaveCard" class="btn-add-collection">
+              <span id="btnSaveText">${isSaved ? '✓ Salva no seu Binder' : '➕ Adicionar à Minha Coleção'}</span>
+            </button>
+
+            <div class="external-market-links">
+              <a href="${tcgplayerUrl}" target="_blank" rel="noopener noreferrer" class="btn-market-link">
+                <span>Ver no TCGplayer</span> ↗
+              </a>
+              <a href="${ligapokemonUrl}" target="_blank" rel="noopener noreferrer" class="btn-market-link">
+                <span>🇧🇷 LigaPokémon</span> ↗
+              </a>
+            </div>
+          </div>
+
         </div>
 
-        <div class="price-variants-grid">
-          <div class="price-variant-card">
-            <span class="variant-name">Normal</span>
-            <span class="variant-val">${currency.format(card.prices?.normal || 0)}</span>
-          </div>
-          <div class="price-variant-card">
-            <span class="variant-name">Holo Foil</span>
-            <span class="variant-val highlight">${currency.format(card.prices?.holofoil || marketPriceUsd)}</span>
-          </div>
-          <div class="price-variant-card">
-            <span class="variant-name">Rev. Holo</span>
-            <span class="variant-val">${currency.format(card.prices?.reverseHolofoil || 0)}</span>
-          </div>
-        </div>
-      </div>
-
-      ${attacksHtml ? `
-        <div class="card-attacks-list">
-          <span class="section-subtitle">Ataques e Habilidades:</span>
-          ${attacksHtml}
-        </div>
-      ` : ''}
-
-      <div class="card-modal-actions">
-        <button id="btnToggleSaveCard" class="btn-add-collection">
-          <span id="btnSaveText">${isSaved ? '✓ Salva no seu Binder' : '➕ Adicionar à Minha Coleção'}</span>
-        </button>
-
-        <div class="external-market-links">
-          <a href="${tcgplayerUrl}" target="_blank" rel="noopener noreferrer" class="btn-market-link">
-            <span>Ver no TCGplayer</span> ↗
-          </a>
-          <a href="${ligapokemonUrl}" target="_blank" rel="noopener noreferrer" class="btn-market-link">
-            <span>🇧🇷 LigaPokémon</span> ↗
-          </a>
-        </div>
       </div>
     `;
 
