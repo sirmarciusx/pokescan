@@ -110,16 +110,7 @@ export class SearchModal {
       `;
     }
 
-    // Check if query has number pattern (e.g. "Charizard 4/102" or "199")
-    let searchName = term;
-    let searchNumber = '';
-    const numMatch = term.match(/(\d{1,3})(\/|\s+)?(\d{1,3})?$/);
-    if (numMatch) {
-      searchNumber = numMatch[1];
-      searchName = term.replace(numMatch[0], '').trim();
-    }
-
-    const results = await pokemonApi.searchCards({ name: searchName || term, number: searchNumber });
+    const results = await pokemonApi.searchCards({ query: term });
 
     if (!this.resultsList) return;
 

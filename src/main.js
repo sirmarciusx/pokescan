@@ -356,7 +356,9 @@ class App {
       let candidateName = '';
       let candidateNumber = '';
 
-      if (this.scanMode === 'ai' && storage.getGeminiKey()) {
+      const hasApiKey = Boolean(storage.getGeminiKey() || import.meta.env?.VITE_GEMINI_API_KEY);
+
+      if (this.scanMode === 'ai' && hasApiKey) {
         try {
           this.showStatus('Consultando IA Vision...');
           const aiResult = await geminiVision.identifyCard(canvas);
@@ -370,12 +372,12 @@ class App {
         }
       }
 
-      if (!candidateName) {
+      if (!candidateName && !candidateNumber) {
         this.showStatus('Lendo número e nome da carta...');
         const ocrResult = await ocrService.recognizeCard(canvas);
         if (ocrResult) {
-          candidateName = ocrResult.name;
-          candidateNumber = ocrResult.number;
+          candidateName = ocrResult.name || '';
+          candidateNumber = ocrResult.number || '';
         }
       }
 
@@ -385,7 +387,8 @@ class App {
       if (candidateName || candidateNumber) {
         results = await pokemonApi.searchCards({
           name: candidateName,
-          number: candidateNumber
+          number: candidateNumber,
+          rawQuery: `${candidateName} ${candidateNumber}`.trim()
         });
       }
 
@@ -395,13 +398,12 @@ class App {
         const topCard = results[0];
         this.cardModal.show(topCard);
       } else {
-        this.showToast('Carta não reconhecida com precisão. Tente focar melhor ou busque manualmente.', 'error');
-        if (candidateName) {
-          this.searchModal.show();
-          if (this.searchModal.input) {
-            this.searchModal.input.value = candidateName;
-            this.searchModal.performSearch(candidateName);
-          }
+        this.showToast('Carta não reconhecida com precisão. Abrindo busca manual...', 'error');
+        const fillVal = candidateName || candidateNumber || '';
+        this.searchModal.show();
+        if (this.searchModal.input && fillVal) {
+          this.searchModal.input.value = fillVal;
+          this.searchModal.performSearch(fillVal);
         }
       }
 
