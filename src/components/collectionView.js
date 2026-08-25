@@ -149,7 +149,7 @@ export class CollectionView {
       return `
         <div class="collection-card-item" data-id="${cardId}">
           <div class="card-item-img-wrap">
-            <img src="${img}" alt="${cardName}" loading="lazy" />
+            <img src="${img}" alt="${cardName}" loading="lazy" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png';" />
             ${isFoil ? `<span class="card-item-foil-badge">FOIL</span>` : ''}
           </div>
           <div class="card-item-info">

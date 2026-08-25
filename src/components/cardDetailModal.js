@@ -131,7 +131,7 @@ export class CardDetailModal {
         <div class="card-detail-left">
           <div class="holo-card-container">
             <div class="holo-card">
-              <img src="${cardImgUrl}" alt="${cardName}" class="holo-card-img" crossorigin="anonymous" />
+              <img src="${cardImgUrl}" alt="${cardName}" class="holo-card-img" crossorigin="anonymous" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png';" />
               <div class="holo-card-glare"></div>
               <div class="holo-card-sparkles"></div>
             </div>

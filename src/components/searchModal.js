@@ -137,7 +137,7 @@ export class SearchModal {
 
       return `
         <div class="search-result-item" data-id="${cardId}">
-          <img src="${img}" alt="${cardName}" class="search-result-thumb" loading="lazy" />
+          <img src="${img}" alt="${cardName}" class="search-result-thumb" loading="lazy" onerror="this.onerror=null; this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png';" />
           <div class="search-result-details">
             <span class="search-result-title">${cardName}</span>
             <span class="search-result-set">${setName} #${cardNum} • ${cardRarity}</span>
