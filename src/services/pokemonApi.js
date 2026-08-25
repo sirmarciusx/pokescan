@@ -1,7 +1,7 @@
 /**
  * Pokemon TCG API Service - Comprehensive Worldwide Pokemon Card Search Engine
  * Integrates pokemontcg.io & tcgdex.net with intelligent multi-tiered querying,
- * promo code resolution, fallback images, real Cardmarket/TCGPlayer pricing & fuzzy fallback.
+ * promo code resolution, real Cardmarket/TCGPlayer pricing, authentic card scans & SVG card fallbacks.
  */
 
 const POKEMON_TCG_API_BASE = 'https://api.pokemontcg.io/v2';
@@ -10,7 +10,7 @@ const TCGDEX_API_BASE = 'https://api.tcgdex.net/v2';
 // In-memory cache to prevent redundant network queries
 const memoryCache = new Map();
 
-// Canonical Pokémon Dex ID map for instant reliable artwork fallback
+// Canonical Pokémon Dex ID map for artwork and SVG generation
 const POKEMON_DEX_MAP = {
   pikachu: 25,
   raichu: 26,
@@ -56,25 +56,85 @@ const POKEMON_DEX_MAP = {
   miraidon: 1008
 };
 
+// Known high-definition card scans for special/promo collections
+const SPECIAL_CARD_SCANS = {
+  '2023sv-6': 'https://den-cards.pokellector.com/372/Pikachu.M23EN.6.49028.png',
+  '2024sv-2': 'https://den-cards.pokellector.com/410/Pikachu.M24.2.55523.png',
+  '2019sm-6': 'https://images.pokemontcg.io/mcd19/6.png',
+  '2018sm-4': 'https://den-cards.pokellector.com/265/Pikachu.MCD8.4.24573.png',
+  '2017sm-5': 'https://den-cards.pokellector.com/230/Pikachu.MCD7.5.18568.png',
+  '2016xy-6': 'https://images.pokemontcg.io/mcd16/6.png',
+  '2015xy-6': 'https://den-cards.pokellector.com/182/Pikachu.MCD5.6.png',
+  '2014xy-5': 'https://den-cards.pokellector.com/158/Pikachu.MCD4.5.png',
+  '2022sv-7': 'https://images.pokemontcg.io/mcd22/6.png',
+  '2021sv-25': 'https://images.pokemontcg.io/mcd21/25.png',
+  'basep-1': 'https://images.pokemontcg.io/basep/1.png',
+  'basep-4': 'https://images.pokemontcg.io/basep/4.png',
+  'cel25-6': 'https://images.pokemontcg.io/cel25/6.png',
+  'pop2-16': 'https://images.pokemontcg.io/pop2/16.png'
+};
+
 class PokemonApiService {
   /**
-   * Helper to get a reliable fallback image for any Pokémon
+   * Helper to generate a realistic SVG card visual when no raster scan exists
    */
-  getFallbackArtwork(cardName, dexId = null) {
+  generateCardSvg({ name = 'Pokémon', number = '', set = 'TCG', type = 'Lightning', hp = '70', dexId = null }) {
     let id = dexId;
-    if (!id && cardName) {
-      const clean = cardName.toLowerCase().replace(/[^a-z]/g, '');
-      for (const [name, num] of Object.entries(POKEMON_DEX_MAP)) {
-        if (clean.includes(name)) {
-          id = num;
+    if (!id && name) {
+      const clean = name.toLowerCase().replace(/[^a-z]/g, '');
+      for (const [pName, pNum] of Object.entries(POKEMON_DEX_MAP)) {
+        if (clean.includes(pName)) {
+          id = pNum;
           break;
         }
       }
     }
-    if (id) {
-      return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png`;
-    }
-    return 'https://images.pokemontcg.io/sv3pt5/25_hires.png';
+    const artworkUrl = id ? `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/${id}.png` : '';
+    
+    // Type accent colors
+    const typeColors = {
+      Lightning: '#F7D02C',
+      Fire: '#EE8130',
+      Water: '#6390F0',
+      Grass: '#7AC74C',
+      Psychic: '#F95587',
+      Darkness: '#705746',
+      Metal: '#B7B7CE',
+      Dragon: '#6F35FC',
+      Fairy: '#D685AD',
+      Colorless: '#A8A77A'
+    };
+    const accent = typeColors[type] || '#F7D02C';
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 336" width="240" height="336">
+        <defs>
+          <linearGradient id="cardBrd" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#ffe066"/>
+            <stop offset="50%" stop-color="#997300"/>
+            <stop offset="100%" stop-color="#ffd700"/>
+          </linearGradient>
+          <linearGradient id="cardInner" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#241e0a"/>
+            <stop offset="100%" stop-color="#0f111a"/>
+          </linearGradient>
+        </defs>
+        <rect x="2" y="2" width="236" height="332" rx="10" fill="url(#cardBrd)" stroke="#000" stroke-width="1.5"/>
+        <rect x="8" y="8" width="224" height="320" rx="7" fill="url(#cardInner)" stroke="rgba(255,255,255,0.15)" stroke-width="1"/>
+        <text x="18" y="28" font-family="system-ui, sans-serif" font-size="13" font-weight="800" fill="#FFFFFF">${name}</text>
+        <text x="185" y="28" font-family="system-ui, sans-serif" font-size="12" font-weight="800" fill="${accent}">${hp ? hp + ' HP' : ''}</text>
+        <rect x="14" y="38" width="212" height="150" rx="5" fill="#141721" stroke="#d4af37" stroke-width="1.5"/>
+        ${artworkUrl ? `<image href="${artworkUrl}" x="25" y="42" width="190" height="142" preserveAspectRatio="xMidYMid meet"/>` : ''}
+        <rect x="14" y="196" width="212" height="108" rx="5" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.06)"/>
+        <circle cx="28" cy="216" r="6" fill="${accent}"/>
+        <text x="42" y="220" font-family="system-ui, sans-serif" font-size="11" font-weight="700" fill="#EEEEEE">Pika Attack</text>
+        <text x="195" y="220" font-family="system-ui, sans-serif" font-size="11" font-weight="800" fill="#FFFFFF">30+</text>
+        <text x="18" y="320" font-family="system-ui, sans-serif" font-size="8" fill="rgba(255,255,255,0.55)">${set}</text>
+        <text x="195" y="320" font-family="system-ui, sans-serif" font-size="8" font-weight="700" fill="#FFFFFF">#${number}</text>
+      </svg>
+    `.trim().replace(/\s+/g, ' ');
+
+    return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
   }
 
   /**
@@ -312,7 +372,6 @@ class PokemonApiService {
     const cleanName = name ? encodeURIComponent(name.trim()) : '';
     const cleanNumber = number ? number.trim() : '';
     const cleanNumberStripped = cleanNumber ? cleanNumber.replace(/^0+/, '') : '';
-    const cleanSetTotalStripped = setTotal ? setTotal.replace(/^0+/, '') : '';
 
     let matchedList = [];
 
@@ -335,7 +394,7 @@ class PokemonApiService {
       } catch (e) {}
     }
 
-    // Filter matching cards by localId (exact or without leading zeros)
+    // Filter matching cards by localId
     if (cleanNumber && matchedList.length > 0) {
       const exactNumberMatches = matchedList.filter(item => {
         const itemNum = String(item.localId || '').trim();
@@ -405,9 +464,17 @@ class PokemonApiService {
       normalPrice = marketPrice;
     }
 
-    const fallbackImg = this.getFallbackArtwork(card.name, card.nationalPokedexNumbers?.[0]);
-    const smallImg = card.images?.small || card.images?.large || fallbackImg;
-    const largeImg = card.images?.large || card.images?.small || fallbackImg;
+    const fallbackScan = SPECIAL_CARD_SCANS[card.id] || this.generateCardSvg({
+      name: card.name,
+      number: card.number,
+      set: card.set?.name,
+      type: card.types?.[0] || 'Lightning',
+      hp: card.hp,
+      dexId: card.nationalPokedexNumbers?.[0]
+    });
+
+    const smallImg = card.images?.small || card.images?.large || fallbackScan;
+    const largeImg = card.images?.large || card.images?.small || fallbackScan;
 
     return {
       id: card.id,
@@ -463,19 +530,33 @@ class PokemonApiService {
   }
 
   /**
-   * Normalizes TCGDex card schema with real Cardmarket & TCGPlayer pricing and fallback artwork
+   * Normalizes TCGDex card schema with real Cardmarket & TCGPlayer pricing and authentic card scans
    */
   normalizeTcgdexCard(card) {
     const dexId = card.dexId?.[0] || null;
-    const fallbackImg = this.getFallbackArtwork(card.name, dexId);
-    
-    // TCGDex image structure
-    let smallImg = fallbackImg;
-    let largeImg = fallbackImg;
+    const setTotal = card.set?.cardCount?.total || card.set?.cardCount?.official || 0;
+
+    // 1. Resolve authentic card scan image
+    let smallImg = '';
+    let largeImg = '';
 
     if (card.image) {
       smallImg = `${card.image}/low.webp`;
       largeImg = `${card.image}/high.webp`;
+    } else if (SPECIAL_CARD_SCANS[card.id]) {
+      smallImg = SPECIAL_CARD_SCANS[card.id];
+      largeImg = SPECIAL_CARD_SCANS[card.id];
+    } else {
+      const generated = this.generateCardSvg({
+        name: card.name,
+        number: card.localId,
+        set: card.set?.name,
+        type: card.types?.[0] || 'Lightning',
+        hp: card.hp,
+        dexId: dexId
+      });
+      smallImg = generated;
+      largeImg = generated;
     }
 
     // Extract genuine market prices from card.pricing
@@ -510,8 +591,6 @@ class PokemonApiService {
       lowPrice = 0.50;
       highPrice = 6.00;
     }
-
-    const setTotal = card.set?.cardCount?.total || card.set?.cardCount?.official || 0;
 
     return {
       id: `tcgdex_${card.id}`,
@@ -589,7 +668,6 @@ class PokemonApiService {
         } else if (cardNum.toLowerCase().includes(queryNum.toLowerCase())) {
           score += 40;
         } else {
-          // Penalize if query specified a number but card has a totally different number
           score -= 50;
         }
       }
@@ -626,6 +704,37 @@ class PokemonApiService {
   searchCuratedLocal(name, number, rawQuery) {
     const curated = [
       {
+        id: '2023sv-6',
+        name: 'Pikachu',
+        supertype: 'Pokémon',
+        subtypes: ['Basic'],
+        hp: '70',
+        types: ['Lightning'],
+        rarity: 'Promo',
+        number: '6',
+        artist: 'OKACHEKE',
+        images: {
+          small: 'https://den-cards.pokellector.com/372/Pikachu.M23EN.6.49028.png',
+          large: 'https://den-cards.pokellector.com/372/Pikachu.M23EN.6.49028.png'
+        },
+        set: {
+          id: '2023sv',
+          name: "McDonald's Collection 2023",
+          series: "McDonald's",
+          total: 15
+        },
+        attacks: [
+          { name: 'Growl', damage: '', text: "During your opponent's next turn, attacks do 20 less damage." },
+          { name: 'Pika Bolt', damage: '30', text: '' }
+        ],
+        prices: { market: 2.25, holofoil: 3.50, normal: 2.00, low: 0.50, high: 5.00 },
+        marketPriceUsd: 2.25,
+        links: {
+          tcgplayer: 'https://www.tcgplayer.com/search/pokemon/product?q=Pikachu+McDonalds+2023+6',
+          ligapokemon: 'https://www.ligapokemon.com.br/?view=cards%2Fsearch&card=Pikachu+McDonalds'
+        }
+      },
+      {
         id: 'sv3pt5-25',
         name: 'Pikachu',
         supertype: 'Pokémon',
@@ -654,37 +763,6 @@ class PokemonApiService {
         links: {
           tcgplayer: 'https://www.tcgplayer.com/search/pokemon/product?q=Pikachu+151+025',
           ligapokemon: 'https://www.ligapokemon.com.br/?view=cards%2Fsearch&card=Pikachu+151'
-        }
-      },
-      {
-        id: '2023sv-6',
-        name: 'Pikachu',
-        supertype: 'Pokémon',
-        subtypes: ['Basic'],
-        hp: '70',
-        types: ['Lightning'],
-        rarity: 'Promo',
-        number: '6',
-        artist: 'OKACHEKE',
-        images: {
-          small: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',
-          large: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png'
-        },
-        set: {
-          id: '2023sv',
-          name: "McDonald's Collection 2023",
-          series: "McDonald's",
-          total: 15
-        },
-        attacks: [
-          { name: 'Growl', damage: '', text: "During your opponent's next turn, attacks do 20 less damage." },
-          { name: 'Pika Bolt', damage: '30', text: '' }
-        ],
-        prices: { market: 2.25, holofoil: 3.50, normal: 2.00, low: 0.50, high: 5.00 },
-        marketPriceUsd: 2.25,
-        links: {
-          tcgplayer: 'https://www.tcgplayer.com/search/pokemon/product?q=Pikachu+McDonalds+2023+6',
-          ligapokemon: 'https://www.ligapokemon.com.br/?view=cards%2Fsearch&card=Pikachu+McDonalds'
         }
       },
       {
